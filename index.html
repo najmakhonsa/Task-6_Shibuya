@@ -8,9 +8,259 @@
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Modern Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #0f172a; /* Slate 900 */
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Top Right Controls */
+        .top-controls {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            z-index: 1000;
+        }
+
+        #lang-select {
+            background: rgba(15, 23, 42, 0.85);
+            color: #f8fafc;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            outline: none;
+        }
+
+        #lang-select:hover {
+            border-color: #34d399;
+        }
+
+        /* Night Mode Glass Panel */
+        .night-panel {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 1000;
+            width: 360px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 25px;
+            border-radius: 24px;
+            
+            /* Dark Glassmorphism */
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            
+            /* Neon Glow */
+            box-shadow: 
+                0 10px 40px -10px rgba(52, 211, 153, 0.2), 
+                0 20px 50px -15px rgba(96, 165, 250, 0.2);
+                
+            color: #f8fafc;
+        }
+
+        /* Custom Scrollbar for Panel */
+        .night-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+        .night-panel::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.4);
+            border-radius: 10px;
+        }
+
+        .header h1 {
+            font-size: 1.35rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #ffffff;
+            letter-spacing: -0.5px;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* Filters */
+        .filters-box {
+            margin-bottom: 20px;
+        }
+
+        .filters-box h3, .insights-box h3 {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #f1f5f9;
+        }
+
+        .filter-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filter-btn {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+            padding: 10px 15px;
+            border-radius: 12px;
+            text-align: left;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .filter-btn:hover {
+            background: rgba(51, 65, 85, 0.9);
+        }
+
+        .filter-btn.active {
+            color: #ffffff;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .filter-btn.active[data-filter="food"] { background: rgba(52, 211, 153, 0.2); border-color: #34d399; }
+        .filter-btn.active[data-filter="shop"] { background: rgba(52, 211, 153, 0.2); border-color: #34d399; }
+        .filter-btn.active[data-filter="transport"] { background: rgba(96, 165, 250, 0.2); border-color: #60a5fa; }
+
+        /* Insights Dashboard */
+        .insights-box {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .insight-desc {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-bottom: 15px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        .stat-row:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .stat-left {
+            display: flex;
+            align-items: center;
+        }
+
+        .stat-icon {
+            font-size: 1.2rem;
+            margin-right: 12px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #cbd5e1;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .green-text { color: #34d399; } /* Neon Green */
+        .blue-text { color: #60a5fa; }  /* Neon Blue */
+        .orange-text { color: #f97316; } /* Add Orange just in case */
+
+        /* Custom Leaflet Popups */
+        .leaflet-popup-content-wrapper {
+            background: rgba(15, 23, 42, 0.95) !important;
+            backdrop-filter: blur(12px) !important;
+            border-radius: 16px !important;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            color: #f8fafc !important;
+            padding: 0 !important;
+        }
+
+        .leaflet-popup-tip {
+            background: rgba(15, 23, 42, 0.95) !important;
+        }
+
+        .custom-popup {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 5px;
+        }
+
+        .popup-icon {
+            font-size: 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 12px;
+        }
+
+        .popup-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .popup-info p {
+            margin: 0;
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        /* Modern zoom controls */
+        .leaflet-bar a {
+            background-color: rgba(30, 41, 59, 0.9) !important;
+            color: #f8fafc !important;
+            border-color: rgba(148, 163, 184, 0.2) !important;
+        }
+        .leaflet-bar a:hover {
+            background-color: #34d399 !important;
+            color: #0f172a !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -27,8 +277,7 @@
     <div id="ui-container" class="night-panel">
         <div class="header">
             <h1 data-i18n="title">Shibuya Hangout Guide 🌃</h1>
-            <p data-i18n="subtitle">Welcome to Shibuya! We've scanned the map to find the best spots for you to eat,
-                shop, and get around.</p>
+            <p data-i18n="subtitle">Welcome to Shibuya! We've scanned the map to find the best spots for you to eat, shop, and get around.</p>
         </div>
 
         <!-- Filters Section -->
@@ -83,7 +332,282 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="app.js"></script>
-</body>
+    
+    <!-- Unified Application Logic -->
+    <script>
+        // =====================================
+        // Translations (English, Indonesia, Japanese)
+        // =====================================
+        const i18n = {
+            en: {
+                title: "Shibuya Hangout Guide 🌃",
+                subtitle: "Welcome to Shibuya! We've scanned the map to find the best spots for you to eat, shop, and get around.",
+                filterTitle: "Interactive Filters",
+                insights: "Area Insights",
+                insightDesc: "Here is what we found in this boundary:",
+                food: "Food & Cafes",
+                shops: "Stores & Shops",
+                transport: "Transit Stops",
+                place: "Place",
+                store: "Store"
+            },
+            id: {
+                title: "Panduan Nongkrong Shibuya 🌃",
+                subtitle: "Selamat datang di Shibuya! Kami telah memindai peta untuk menemukan tempat makan, belanja, & transportasi terbaik.",
+                filterTitle: "Filter Peta",
+                insights: "Wawasan Area",
+                insightDesc: "Berikut yang kami temukan di area ini:",
+                food: "Makanan & Kafe",
+                shops: "Toko & Belanja",
+                transport: "Halte & Stasiun",
+                place: "Tempat",
+                store: "Toko"
+            },
+            ja: {
+                title: "渋谷お出かけガイド 🌃",
+                subtitle: "渋谷へようこそ！食事、買い物、移動に最適なスポットをマップから見つけました。",
+                filterTitle: "フィルター",
+                insights: "エリア分析",
+                insightDesc: "このエリアで見つかったもの：",
+                food: "食事＆カフェ",
+                shops: "お店＆ショッピング",
+                transport: "駅＆バス停",
+                place: "場所",
+                store: "店舗"
+            }
+        };
 
+        let currentLang = 'en';
+
+        function updateLanguage() {
+            const texts = document.querySelectorAll('[data-i18n]');
+            texts.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (i18n[currentLang][key]) {
+                    el.innerText = i18n[currentLang][key];
+                }
+            });
+        }
+
+        document.getElementById('lang-select').addEventListener('change', (e) => {
+            currentLang = e.target.value;
+            updateLanguage();
+            // We need to refresh popups, the easiest way is to re-render the data
+            renderFeatures();
+        });
+
+
+        // =====================================
+        // Map Initialization
+        // =====================================
+        const map = L.map('map', { zoomControl: false }).setView([35.6580, 139.7016], 14);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+
+        const colors = {
+            lifestyle: '#34d399', // Neon Green (Food/Shop)
+            transport: '#60a5fa', // Neon Blue
+            boundary: '#475569'   // Slate
+        };
+
+        // =====================================
+        // State Management
+        // =====================================
+        let rawData = null; // Store GeoJSON to avoid re-fetching
+        let boundaryLayer = null;
+
+        // Layer Groups for filtering
+        const layers = {
+            food: L.layerGroup().addTo(map),
+            shop: L.layerGroup().addTo(map),
+            transport: L.layerGroup().addTo(map)
+        };
+
+        // Filter States
+        const activeFilters = {
+            food: true,
+            shop: true,
+            transport: true
+        };
+
+        // Insight Counters
+        let insightCounts = {
+            food: 0,
+            shop: 0,
+            transport: 0
+        };
+
+        // =====================================
+        // Helpers
+        // =====================================
+        function getFriendlyCategory(props) {
+            if (props.railway || props.public_transport || props.station) return 'transport';
+            if (props.shop) return 'shop';
+            if (props.amenity && ['restaurant', 'cafe', 'fast_food', 'food_court', 'ice_cream'].includes(props.amenity)) return 'food';
+            return null;
+        }
+
+        function formatText(text) {
+            if (!text) return "";
+            return text.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        }
+
+        // =====================================
+        // Data Rendering
+        // =====================================
+        function renderFeatures() {
+            if (!rawData) return;
+
+            // Clear old layers
+            layers.food.clearLayers();
+            layers.shop.clearLayers();
+            layers.transport.clearLayers();
+
+            // Reset counts
+            insightCounts = { food: 0, shop: 0, transport: 0 };
+
+            L.geoJSON(rawData, {
+                filter: function(feature) {
+                    const cat = getFriendlyCategory(feature.properties || {});
+                    if (!cat) return false;
+                    
+                    // Only render if the filter is active
+                    if (!activeFilters[cat]) return false;
+
+                    // Update insight counts for ACTIVE features
+                    insightCounts[cat]++;
+                    return true;
+                },
+
+                pointToLayer: function(feature, latlng) {
+                    const cat = getFriendlyCategory(feature.properties);
+                    const color = (cat === 'transport') ? colors.transport : colors.lifestyle;
+                    return L.circleMarker(latlng, {
+                        radius: 5.5,
+                        fillColor: color,
+                        color: '#0f172a',
+                        weight: 1.5,
+                        opacity: 1,
+                        fillOpacity: 0.95
+                    });
+                },
+
+                style: function(feature) {
+                    const cat = getFriendlyCategory(feature.properties);
+                    const color = (cat === 'transport') ? colors.transport : colors.lifestyle;
+                    return {
+                        color: color,
+                        weight: 1.5,
+                        fillColor: color,
+                        fillOpacity: 0.15 
+                    };
+                },
+
+                onEachFeature: function(feature, layer) {
+                    const p = feature.properties;
+                    const name = p.name || p["name:en"] || i18n[currentLang].place;
+                    const cat = getFriendlyCategory(p);
+                    
+                    let icon = "📍";
+                    let typeName = i18n[currentLang].place;
+
+                    if (cat === 'shop') {
+                        icon = "🛍️";
+                        typeName = formatText(p.shop) + " " + i18n[currentLang].store;
+                    } else if (cat === 'food') {
+                        icon = "🍔";
+                        typeName = formatText(p.amenity);
+                    } else if (cat === 'transport') {
+                        icon = "🚆";
+                        typeName = i18n[currentLang].transport;
+                    }
+
+                    const popupHTML = `
+                        <div class="custom-popup">
+                            <div class="popup-icon">${icon}</div>
+                            <div class="popup-info">
+                                <h4>${name}</h4>
+                                <p>${typeName}</p>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add to corresponding layer group instead of map directly
+                    layer.bindPopup(popupHTML);
+                    layers[cat].addLayer(layer);
+                }
+            });
+
+            // Update UI Dashboard
+            document.getElementById('stat-food').innerText = insightCounts.food;
+            document.getElementById('stat-shop').innerText = insightCounts.shop;
+            document.getElementById('stat-transport').innerText = insightCounts.transport;
+        }
+
+        // =====================================
+        // Fetch Data Initially
+        // =====================================
+        async function loadData() {
+            try {
+                // Fetch the exact file names and paths as originally specified
+                const boundaryRes = await fetch('clipping_boundary_shibuya.geojson');
+                if (boundaryRes.ok) {
+                    const boundaryData = await boundaryRes.json();
+                    boundaryLayer = L.geoJSON(boundaryData, {
+                        style: {
+                            color: colors.boundary,
+                            weight: 2,
+                            dashArray: '6, 8',
+                            fillColor: 'transparent'
+                        },
+                        interactive: false 
+                    }).addTo(map);
+                    map.fitBounds(boundaryLayer.getBounds(), { padding: [50, 50], animate: true });
+                }
+
+                const dataRes = await fetch('Shibuya.geojson');
+                if (dataRes.ok) {
+                    rawData = await dataRes.json();
+                    renderFeatures();
+                } else {
+                    console.error("Failed to load Shibuya.geojson. Status:", dataRes.status);
+                }
+            } catch (error) {
+                console.error("Failed to load map data:", error);
+                alert("The map data couldn't be loaded! Did you open this file directly by double-clicking it? Browsers block local file loading (CORS error) for security. Please use 'Live Server' in VS Code to view the map data correctly.");
+            }
+        }
+
+        // =====================================
+        // Filter Interaction Logic
+        // =====================================
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.currentTarget;
+                const filterKey = target.getAttribute('data-filter');
+                
+                // Toggle State
+                activeFilters[filterKey] = !activeFilters[filterKey];
+                
+                // Toggle UI Class
+                if (activeFilters[filterKey]) {
+                    target.classList.add('active');
+                } else {
+                    target.classList.remove('active');
+                }
+                
+                // Re-render Data
+                renderFeatures();
+            });
+        });
+
+        // Init
+        updateLanguage();
+        loadData();
+    </script>
+</body>
 </html>
