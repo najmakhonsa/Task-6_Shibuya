@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shibuya Hangout Guide</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Modern Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <!-- Top Right Controls -->
+    <div class="top-controls">
+        <select id="lang-select">
+            <option value="en">🇬🇧 English</option>
+            <option value="id">🇮🇩 Indonesia</option>
+            <option value="ja">🇯🇵 日本語</option>
+        </select>
+    </div>
+
+    <!-- Main Dashboard Panel -->
+    <div id="ui-container" class="night-panel">
+        <div class="header">
+            <h1 data-i18n="title">Shibuya Hangout Guide 🌃</h1>
+            <p data-i18n="subtitle">Welcome to Shibuya! We've scanned the map to find the best spots for you to eat,
+                shop, and get around.</p>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-box">
+            <h3 data-i18n="filterTitle">Interactive Filters</h3>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="food">
+                    🍔 <span data-i18n="food">Food & Cafes</span>
+                </button>
+                <button class="filter-btn active" data-filter="shop">
+                    🛍️ <span data-i18n="shops">Stores & Shops</span>
+                </button>
+                <button class="filter-btn active" data-filter="transport">
+                    🚆 <span data-i18n="transport">Transit Stops</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Interactive Insights Section -->
+        <div class="insights-box">
+            <h3 data-i18n="insights">Area Insights</h3>
+            <p class="insight-desc" data-i18n="insightDesc">Here is what we found in this boundary:</p>
+
+            <div class="stat-row">
+                <div class="stat-left">
+                    <span class="stat-icon">🍔</span>
+                    <span class="stat-label" data-i18n="food">Food & Cafes</span>
+                </div>
+                <span class="stat-value orange-text" id="stat-food">0</span>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-left">
+                    <span class="stat-icon">🛍️</span>
+                    <span class="stat-label" data-i18n="shops">Stores & Shops</span>
+                </div>
+                <span class="stat-value green-text" id="stat-shop">0</span>
+            </div>
+
+            <div class="stat-row">
+                <div class="stat-left">
+                    <span class="stat-icon">🚆</span>
+                    <span class="stat-label" data-i18n="transport">Transit Stops</span>
+                </div>
+                <span class="stat-value blue-text" id="stat-transport">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Container -->
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>
